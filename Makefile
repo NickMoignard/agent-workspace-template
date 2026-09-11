@@ -47,7 +47,7 @@ add-submodule: ## Add a project submodule: make add-submodule URL=<git-url> [DIR
 
 .PHONY: sync-workspace
 sync-workspace: ## Regenerate the *.code-workspace folder list from .gitmodules
-	@node scripts/sync-workspace.mjs
+	@bash scripts/run-node.sh scripts/sync-workspace.mjs
 
 # ---------------------------------------------------------------------------
 # Help

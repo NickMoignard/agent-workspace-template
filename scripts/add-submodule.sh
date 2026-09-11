@@ -35,7 +35,7 @@ git submodule add ${BRANCH:+-b "$BRANCH"} "$URL" "$DIR"
 git submodule update --init --recursive "$DIR"
 
 say "Syncing VS Code workspace folders"
-node scripts/sync-workspace.mjs
+bash scripts/run-node.sh scripts/sync-workspace.mjs
 
 # Install the new submodule's dependencies using the right package manager.
 say "Installing dependencies for $DIR"

@@ -62,7 +62,7 @@ say "Installing project dependencies in submodules…"
 "$ROOT/scripts/update-agent-deps.sh" --install || warn "dependency install had issues; review output above."
 
 say "Syncing VS Code workspace folders…"
-node "$ROOT/scripts/sync-workspace.mjs"
+bash "$ROOT/scripts/run-node.sh" "$ROOT/scripts/sync-workspace.mjs"
 
 cat <<'DONE'
 
