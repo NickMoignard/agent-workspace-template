@@ -11,7 +11,13 @@
 .beads/*.db-wal
 .beads-credential-key
 
-# --- Dependencies (submodules manage their own; ignore any at root) ---
+# --- Referenced projects (symlinks into $AGENTS_GIT_SRC_DIR; per-machine) ---
+# The symlinks and their clones are machine-specific; only the manifest
+# (projects.yaml) and projects/README.md are committed. See docs/adr/0004.
+/projects/*
+!/projects/README.md
+
+# --- Dependencies (projects manage their own; ignore any at root) ---
 node_modules/
 .venv/
 venv/

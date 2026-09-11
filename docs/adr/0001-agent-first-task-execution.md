@@ -13,8 +13,9 @@ live in `AGENTS.md`/`.agents/`, and harness-specific files are only pointers.
 
 Setup and maintenance tasks fall into two shapes:
 
-- **Deterministic, single-step** work — init submodules, sync the VS Code
-  workspace, rebuild the beads cache. A shell script does this perfectly.
+- **Deterministic, single-step** work — clone and symlink the manifest's
+  projects (see ADR 0004), sync the VS Code workspace, initialize the beads
+  database. A shell script does this perfectly.
 - **Multi-step, environment-adaptive** work — e.g. installing `asdf`, adding
   plugins, wiring shims onto `PATH` across different shells/OSes, then running
   `asdf install`. Each step depends on the previous one's outcome and on the

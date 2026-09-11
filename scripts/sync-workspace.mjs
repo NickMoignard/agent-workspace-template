@@ -1,15 +1,17 @@
 #!/usr/bin/env node
-// Regenerate the "folders" list in the *.code-workspace file from .gitmodules.
+// Regenerate the "folders" list in the *.code-workspace file by scanning
+// projects/.
 //
-// Every git submodule becomes a top-level folder in the VS Code multi-root
-// workspace, plus the workspace root itself. Run via `make sync-workspace`
-// (also called automatically by `make add-submodule` / `make update-submodules`).
+// Every symlink under projects/ becomes a top-level folder in the VS Code
+// multi-root workspace, plus the workspace root itself. Run via
+// `make sync-workspace` (also called automatically by `make add-project` /
+// `make sync-projects` / `make update-projects`).
 //
 // Idempotent: safe to run any time. Preserves "settings", "extensions", and any
 // other top-level keys in the workspace file.
 
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 const root = process.cwd();
 
@@ -22,26 +24,26 @@ function findWorkspaceFile() {
   return join(root, match);
 }
 
-// Parse submodule paths out of .gitmodules (no external deps).
-function submodulePaths() {
-  let text = "";
+// Scan projects/ for referenced projects (symlinks into $AGENTS_GIT_SRC_DIR).
+// Also tolerates real directories; ignores README.md and dotfiles.
+function projectPaths() {
+  let entries;
   try {
-    text = readFileSync(join(root, ".gitmodules"), "utf8");
+    entries = readdirSync(join(root, "projects"), { withFileTypes: true });
   } catch {
-    return []; // no submodules yet
+    return []; // no projects/ dir yet
   }
-  return text
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.startsWith("path"))
-    .map((l) => l.split("=")[1].trim())
+  return entries
+    .filter((d) => !d.name.startsWith(".") && d.name !== "README.md")
+    .filter((d) => d.isSymbolicLink() || d.isDirectory())
+    .map((d) => `projects/${d.name}`)
     .sort();
 }
 
 function buildFolders(paths) {
   const entries = [
     { name: "⚙︎ workspace-root", path: "." },
-    ...paths.map((p) => ({ name: p, path: p })),
+    ...paths.map((p) => ({ name: basename(p), path: p })),
   ];
   // Two-space indent inside the "folders": [ … ] array.
   const body = entries
@@ -52,7 +54,7 @@ function buildFolders(paths) {
 
 const wsFile = findWorkspaceFile();
 const original = readFileSync(wsFile, "utf8");
-const paths = submodulePaths();
+const paths = projectPaths();
 
 // Replace the whole "folders": [ ... ] block (including any inline comments).
 const foldersRe = /"folders"\s*:\s*\[[\s\S]*?\n\s*\]/;
@@ -64,7 +66,7 @@ const updated = original.replace(foldersRe, buildFolders(paths));
 
 if (updated !== original) {
   writeFileSync(wsFile, updated);
-  console.log(`sync-workspace: wrote ${paths.length} submodule folder(s) to ${wsFile.replace(root + "/", "")}`);
+  console.log(`sync-workspace: wrote ${paths.length} project folder(s) to ${wsFile.replace(root + "/", "")}`);
 } else {
   console.log("sync-workspace: already up to date");
 }

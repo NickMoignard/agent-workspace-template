@@ -9,7 +9,7 @@ SHELL := /bin/bash
 # ---------------------------------------------------------------------------
 
 .PHONY: setup
-setup: ## One-time onboarding after cloning (submodules, pointers, beads, deps)
+setup: ## One-time onboarding after cloning (projects, pointers, beads, deps)
 	@bash scripts/setup.sh
 
 .PHONY: onboard
@@ -19,34 +19,41 @@ onboard: setup ## Alias for `setup`
 # Keeping the workspace fresh
 # ---------------------------------------------------------------------------
 
-.PHONY: update-submodules
-update-submodules: ## Pull every submodule to the latest remote commit on its tracked branch
-	@echo "==> Updating all submodules to latest remote…"
-	@git submodule update --init --recursive --remote
+.PHONY: update-projects
+update-projects: ## Pull every linked project to the latest commit on its default branch
+	@echo "==> Updating linked projects…"
+	@for p in projects/*/; do \
+	  [ -e "$$p/.git" ] || continue; \
+	  echo "  $$p"; git -C "$$p" pull --ff-only || echo "    (skipped: won't fast-forward)"; \
+	done
 	@$(MAKE) --no-print-directory sync-workspace
-	@echo "==> Submodules updated. Review & commit the new pointers with: git add -p"
+	@echo "==> Projects updated. Commit any lockfile changes inside each project's own repo."
 
 .PHONY: update-agent-skills
 update-agent-skills: ## Refresh external agent skills via `npx skills update` (tracked in skills-lock.json)
 	@bash scripts/update-agent-skills.sh
 
 .PHONY: update-agent-deps
-update-agent-deps: ## Update project dependencies (npm/pnpm/yarn/pip/poetry/go/cargo) in each submodule
+update-agent-deps: ## Update project dependencies (npm/pnpm/yarn/pip/poetry/go/cargo) in each project
 	@bash scripts/update-agent-deps.sh
 
 .PHONY: update
-update: update-submodules update-agent-deps update-agent-skills ## Run all three update targets
+update: update-projects update-agent-deps update-agent-skills ## Run all three update targets
 
 # ---------------------------------------------------------------------------
-# Submodule + workspace management
+# Project + workspace management
 # ---------------------------------------------------------------------------
 
-.PHONY: add-submodule
-add-submodule: ## Add a project submodule: make add-submodule URL=<git-url> [DIR=<folder>] [BRANCH=<branch>]
-	@bash scripts/add-submodule.sh "$(URL)" "$(DIR)" "$(BRANCH)"
+.PHONY: add-project
+add-project: ## Add a project: make add-project URL=<git-url> (clones + symlinks + records in projects.yaml)
+	@bash scripts/add-project.sh "$(URL)"
+
+.PHONY: sync-projects
+sync-projects: ## Clone+symlink every project in projects.yaml into projects/ (needs AGENTS_GIT_SRC_DIR)
+	@bash scripts/sync-projects.sh
 
 .PHONY: sync-workspace
-sync-workspace: ## Regenerate the *.code-workspace folder list from .gitmodules
+sync-workspace: ## Regenerate the *.code-workspace folder list by scanning projects/
 	@bash scripts/run-node.sh scripts/sync-workspace.mjs
 
 # ---------------------------------------------------------------------------
@@ -61,4 +68,4 @@ help: ## Show this help
 		| sort \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
 	@echo ""
-	@echo "Example: make add-submodule URL=git@github.com:acme/api.git DIR=api"
+	@echo "Example: make add-project URL=git@github.com:acme/api.git"

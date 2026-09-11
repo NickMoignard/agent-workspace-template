@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Update (or install) project dependencies inside every git submodule.
-# Auto-detects the package manager per submodule.
+# Update (or install) project dependencies inside every referenced project.
+# Auto-detects the package manager per project (a symlink under projects/).
 #
-#   scripts/update-agent-deps.sh                 # update all submodules to latest allowed
+#   scripts/update-agent-deps.sh                  # update all projects to latest allowed
 #   scripts/update-agent-deps.sh --install        # install deps as locked (used by setup)
-#   scripts/update-agent-deps.sh --install <dir>  # only that submodule (used by add-submodule)
+#   scripts/update-agent-deps.sh --install <dir>  # only that project (used by add-project)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 MODE="update"
 [ "${1:-}" = "--install" ] && { MODE="install"; shift; }
-ONLY="${1:-}"   # optional single submodule path to limit to
+ONLY="${1:-}"   # optional single project path (e.g. projects/<name>) to limit to
 
 say() { printf '\033[1;36m==>\033[0m %s\n' "$1"; }
 skip() { printf '\033[0;90m    - %s\033[0m\n' "$1"; }
@@ -18,16 +18,16 @@ skip() { printf '\033[0;90m    - %s\033[0m\n' "$1"; }
 if [ -n "$ONLY" ]; then
   paths="$ONLY"
 else
-  # Iterate submodule paths from .gitmodules.
-  paths=$(git config --file .gitmodules --get-regexp path 2>/dev/null | awk '{print $2}' || true)
+  # Iterate the project symlinks (or dirs) under projects/.
+  paths=$(find projects -mindepth 1 -maxdepth 1 \( -type l -o -type d \) 2>/dev/null | sort || true)
 fi
 if [ -z "$paths" ]; then
-  echo "No submodules registered yet — nothing to do."
+  echo "No projects linked yet — nothing to do (see /setup-projects)."
   exit 0
 fi
 
 for dir in $paths; do
-  [ -d "$dir" ] || { skip "$dir (not checked out — run 'make update-submodules')"; continue; }
+  [ -d "$dir" ] || { skip "$dir (symlink doesn't resolve — run 'make sync-projects')"; continue; }
   say "$dir"
   (
     cd "$dir"

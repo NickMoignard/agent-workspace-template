@@ -11,21 +11,25 @@ file — never the harness-specific ones.
 ## What this workspace is
 
 An **agent workspace** is a parent directory that groups several projects
-(added as **git submodules**) so an agent — and a human in VS Code — can work
-across all of them at once. It bundles:
+(referenced as **symlinks** to shared clones) so an agent — and a human in VS
+Code — can work across all of them at once. It bundles:
 
-- **Project source code** — each project is a git submodule under this root.
+- **Project references** — a committed `projects.yaml` manifest lists clone URLs;
+  each project is cloned once into `$AGENTS_GIT_SRC_DIR` and symlinked into
+  `projects/`. The workspace pins no project commits (see
+  `docs/adr/0004-projects-as-symlinks-not-submodules.md` and `CONTEXT.md`).
 - **Agent instructions** — this file (`AGENTS.md`).
 - **Agent skills** — reusable procedures in `.agents/skills/`.
 - **An issue tracker** — [beads](https://github.com/gastownhall/beads) (`bd`) in `.beads/`.
 
 It is simultaneously a **VS Code multi-root workspace** (`*.code-workspace`),
-so every submodule shows up as a folder in the editor.
+so every symlinked project shows up as a folder in the editor.
 
 **Homebrew, [asdf](https://asdf-vm.com) v0.16+, and [beads](https://github.com/gastownhall/beads)
 (`bd`) are hard requirements**, on the same level. Homebrew is the package
 manager that installs the other two (including asdf itself), so set it up first.
-node/pnpm/python/uv/go/ruby/rust are all managed by asdf; each workspace pins
+Homebrew also installs the small CLI utilities the workspace tooling relies on:
+**jq** (parses JSON) and **yq** (parses the project manifest). node/pnpm/python/uv/go/ruby/rust are all managed by asdf; each workspace pins
 versions in `.tool-versions` (python + uv + nodejs by default — nodejs provides
 `npx` for skill management). beads tracks work as issues in a local Dolt
 database under `.beads/`.
@@ -41,35 +45,44 @@ never invokes a harness. See `docs/adr/0001-agent-first-task-execution.md`.
 .
 ├── AGENTS.md                 # ← you are here (canonical instructions)
 ├── CLAUDE.md                 # pointer → @AGENTS.md
-├── *.code-workspace          # VS Code multi-root workspace (one folder per submodule)
-├── Makefile                  # setup / update-submodules / update-agent-skills / update-agent-deps
-├── .tool-versions            # asdf toolchain pins (python + uv by default)
+├── CONTEXT.md                # glossary: workspace / project / manifest terms
+├── *.code-workspace          # VS Code multi-root workspace (one folder per project)
+├── Makefile                  # setup / update-projects / update-agent-skills / update-agent-deps
+├── projects.yaml             # manifest: clone URLs of the projects this workspace references
+├── projects/                 # one symlink per project → $AGENTS_GIT_SRC_DIR/<name> (git-ignored)
+├── .tool-versions            # asdf toolchain pins (python + uv + nodejs by default)
 ├── .agents/
-│   └── skills/               # agent skills — built-in (setup-homebrew, setup-asdf, setup-beads, add-submodule, …) + external copies via `npx skills`
+│   └── skills/               # agent skills — built-in (setup-homebrew, setup-asdf, setup-beads, setup-projects, add-project, …) + external copies via `npx skills`
 ├── skills-lock.json          # lockfile for external skills (created when you add the first one)
 ├── .claude/                  # Claude Code harness pointers (skills symlink, settings)
 ├── .vscode/                  # recommended extensions + shared editor settings
 ├── .beads/                   # beads issue tracker (local Dolt db, git-ignored; README committed)
-├── docs/adr/                 # architecture decision records (0001 = agent-first)
-├── scripts/                  # helper scripts used by the Makefile
-└── <project-a>/ <project-b>/ # git submodules (the actual source code)
+├── docs/adr/                 # architecture decision records (0001 = agent-first, 0004 = projects-as-symlinks)
+└── scripts/                  # helper scripts used by the Makefile
 ```
+
+Project clones themselves live outside the workspace, in `$AGENTS_GIT_SRC_DIR`
+(default `~/agents/git_repos`), shared across every workspace that references
+them.
 
 ## Working rules
 
 1. **Harness-agnostic first.** Put instructions in `AGENTS.md` and skills in
    `.agents/skills/`. Never write harness-specific files (`CLAUDE.md`,
    `.cursor/rules`, …) with real content — they only point here.
-2. **Submodules are the source of truth for code.** Never commit changes to a
-   submodule's tracked files from the parent repo; `cd` into the submodule,
-   commit and push there, then record the new pointer in the parent.
-3. **Keep the workspace in sync.** After adding/removing a submodule, run
-   `make sync-workspace` so the `.code-workspace` folder list matches
-   `.gitmodules`. The `add-submodule` skill does this for you.
+2. **Projects own their code; the workspace only references them.** A project's
+   clone lives in `$AGENTS_GIT_SRC_DIR` and is symlinked into `projects/`. Commit
+   code changes inside the project's own repo. The workspace pins no commits, so
+   there is no parent pointer to update. Never commit the symlinks — they're
+   git-ignored (only `projects.yaml` and `projects/README.md` are tracked).
+3. **Keep the workspace in sync.** After adding/removing a project (editing
+   `projects.yaml` or the symlinks), run `make sync-workspace` so the
+   `.code-workspace` folder list matches `projects/`. `add-project` /
+   `sync-projects` do this for you.
 4. **Track work in beads.** Use `bd` (`bd create`, `bd ready`, `bd list`) for
    issues rather than scattering TODOs. See "Issue tracking (beads)" below; run
    `bd prime` for the full, current workflow.
-5. **Don't let submodules go stale.** Run `make update-submodules` regularly.
+5. **Don't let projects go stale.** Run `make update-projects` regularly.
 
 ## Skills
 
@@ -82,10 +95,13 @@ Skills live in `.agents/skills/<name>/SKILL.md`. Available in this template:
 - **setup-beads** — install the `bd` issue tracker (via Homebrew) and initialize
   the workspace's local Dolt database with `--skip-agents` so the harness files
   stay untouched. Run after `setup-homebrew`.
-- **add-submodule** — add a new project as a submodule and register it in the
-  VS Code workspace + issue tracker.
-- **update-workspace** — refresh submodules, skills, and dependencies so
-  nothing goes stale.
+- **setup-projects** — provision `$AGENTS_GIT_SRC_DIR` (env var + directory) and
+  clone+symlink the projects in `projects.yaml`. Run after `setup-homebrew`.
+- **add-project** — add a new project: record its URL in `projects.yaml`, clone
+  it, symlink it into `projects/`, and register it in the VS Code workspace +
+  issue tracker.
+- **update-workspace** — refresh projects, skills, and dependencies so nothing
+  goes stale.
 
 Invoke a skill by reading its `SKILL.md` and following the procedure.
 
@@ -124,12 +140,13 @@ Run `bd prime` for the full, up-to-date workflow context.
 
 | Command | Purpose |
 | --- | --- |
-| `make setup` | One-time onboarding after cloning (submodules, symlinks, deps, beads). |
-| `make update-submodules` | Pull every submodule to its latest tracked branch. |
+| `make setup` | One-time onboarding after cloning (projects, pointers, deps, beads). |
+| `make sync-projects` | Clone+symlink every project in `projects.yaml` (needs `$AGENTS_GIT_SRC_DIR`). |
+| `make update-projects` | `git pull` every linked project to its default branch. |
 | `make update-agent-skills` | Refresh external skills via `npx skills update` (tracked in `skills-lock.json`). |
-| `make update-agent-deps` | Update project dependencies (npm/pnpm/yarn/pip/…) in each submodule. |
-| `make add-submodule URL=… DIR=…` | Add a new project submodule and wire it up. |
-| `make sync-workspace` | Regenerate the `.code-workspace` folder list from `.gitmodules`. |
+| `make update-agent-deps` | Update project dependencies (npm/pnpm/yarn/pip/…) in each project. |
+| `make add-project URL=…` | Add a new project (record, clone, symlink) and wire it up. |
+| `make sync-workspace` | Regenerate the `.code-workspace` folder list by scanning `projects/`. |
 | `make help` | List all targets. |
 
 ## Harness pointers

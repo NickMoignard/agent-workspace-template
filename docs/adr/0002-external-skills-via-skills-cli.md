@@ -46,7 +46,7 @@ The old `.agents/skills.manifest` and its git-clone sync are removed.
 
 - Collections, selection, flattening, and updates are handled by a maintained
   ecosystem tool instead of our own script.
-- The workspace's own built-in skills (`setup-asdf`, `add-submodule`, …) live
+- The workspace's own built-in skills (`setup-asdf`, `add-project`, …) live
   alongside externally-added ones in `.agents/skills/`; the lockfile
   distinguishes what `skills update` manages.
 - nodejs is now always installed, even in workspaces that ship no JS code —

@@ -1,0 +1,14 @@
+# projects.yaml — the projects this workspace references.
+#
+# Each entry under `projects:` is a git clone URL. `/setup-projects` (or
+# `make sync-projects`) clones each repo into $AGENTS_GIT_SRC_DIR
+# (default ~/agents/git_repos) if it isn't there yet, then symlinks it into
+# projects/<repo-basename>. Clones always track the remote's default branch —
+# no branch or commit is pinned here. See docs/adr/0004.
+#
+# Example:
+# projects:
+#   - git@github.com:me/yamlx.git
+#   - https://github.com/acme/infra.git
+
+projects: []

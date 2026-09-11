@@ -1,6 +1,6 @@
 {
   // Shared editor settings for the whole agent workspace. Per-project overrides
-  // belong in each submodule's own .vscode/settings.json.
+  // belong in each project's own .vscode/settings.json.
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
@@ -10,8 +10,7 @@
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
 
-  // Treat submodules as sibling git repos, not as folders of the parent repo.
-  "git.detectSubmodules": true,
+  // Each project is its own git repo opened as a sibling folder.
   "git.openRepositoryInParentFolders": "always",
 
   // Keep agent-agnostic files easy to find; hide harness pointer noise.
@@ -20,5 +19,5 @@
     "*.code-workspace": "jsonc"
   },
 
-  "cSpell.words": ["beads", "gitmodules", "submodule", "submodules", "esbenp"]
+  "cSpell.words": ["beads", "symlink", "symlinks", "esbenp"]
 }

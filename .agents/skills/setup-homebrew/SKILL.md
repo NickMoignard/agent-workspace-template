@@ -1,6 +1,6 @@
 ---
 name: setup-homebrew
-description: Install and configure Homebrew for the current machine. Ensures brew is present, wires `brew shellenv` onto PATH idempotently, and verifies it works. Use when onboarding a machine, when `brew` is missing, or when `make setup` reports Homebrew is not configured. Run this BEFORE /setup-asdf (asdf is installed via brew).
+description: Install and configure Homebrew for the current machine. Ensures brew is present, wires `brew shellenv` onto PATH idempotently, installs the foundational CLI tools the workspace relies on (jq, yq), and verifies it works. Use when onboarding a machine, when `brew`/`jq`/`yq` are missing, or when `make setup` reports Homebrew is not configured. Run this BEFORE /setup-asdf (asdf is installed via brew).
 ---
 
 # Set up Homebrew for this workspace
@@ -66,15 +66,33 @@ own `shellenv` (don't hardcode paths):
    eval "$(<BREW> shellenv)"
    ```
 
-### 3. Verify
+### 3. Install foundational CLI tools (jq, yq)
+
+The workspace's mechanical tooling parses JSON (`skills-lock.json`,
+`*.code-workspace`) with **jq** and YAML (the project manifest) with **yq**.
+Both are hard requirements and both come from Homebrew:
+
+```bash
+brew install jq yq   # no-ops / upgrades if already present
+```
+
+**Heads-up on `yq`:** the name is shared by two different tools — Homebrew's
+`yq` is **mikefarah/yq** (Go), which the scripts require, while many Linux boxes
+ship **python-yq** (a jq wrapper) at `/usr/bin/yq`. Homebrew's `shellenv` puts
+brew's bin ahead of `/usr/bin`, so after this skill runs `yq` resolves to
+mikefarah's. If a system python-yq still wins, fix PATH order before continuing.
+
+### 4. Verify
 
 ```bash
 brew --version
-brew doctor   # optional; report warnings but don't block on cosmetic ones
+jq --version
+yq --version   # MUST mention "mikefarah"; if not, brew's yq isn't first on PATH
 ```
 
-Confirm `brew` resolves on PATH in the current session, then continue with
-`/setup-asdf` (which installs asdf via `brew install asdf`).
+Confirm `brew`, `jq`, and `yq` resolve on PATH in the current session and that
+`yq --version` names mikefarah, then continue with `/setup-asdf` (which installs
+asdf via `brew install asdf`).
 
 ## Rules
 

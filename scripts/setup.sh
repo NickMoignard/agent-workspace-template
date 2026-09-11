@@ -21,6 +21,18 @@ else
   warn "    codex  \"/setup-homebrew set up Homebrew on this machine\""
 fi
 
+# jq/yq are foundational CLI tools the workspace tooling parses config with.
+# They install via Homebrew (see /setup-homebrew); check and point the way.
+missing_cli=""
+command -v jq >/dev/null 2>&1 || missing_cli="jq"
+command -v yq >/dev/null 2>&1 || missing_cli="${missing_cli:+$missing_cli }yq"
+if [ -n "$missing_cli" ]; then
+  warn "Missing CLI tool(s): $missing_cli — REQUIRED (jq parses JSON, yq parses the project manifest)."
+  warn "Install with: brew install $missing_cli   (or run /setup-homebrew)."
+else
+  say "CLI tools detected (jq $(jq --version 2>/dev/null), yq $(yq --version 2>/dev/null | awk '{print $NF}'))."
+fi
+
 ASDF_DATA_DIR="${ASDF_DATA_DIR:-$HOME/.asdf}"
 if command -v asdf >/dev/null 2>&1 && [ -d "$ASDF_DATA_DIR/shims" ]; then
   say "asdf detected ($(asdf --version 2>/dev/null))."
@@ -32,8 +44,18 @@ else
   warn "Continuing with harness-agnostic steps; toolchain-dependent steps may be skipped."
 fi
 
-say "Initializing git submodules (recursive)…"
-git submodule update --init --recursive
+say "Setting up referenced projects…"
+# Projects are cloned into $AGENTS_GIT_SRC_DIR and symlinked into projects/.
+# Provisioning that env var + directory is agent-layer work (/setup-projects);
+# here we run the mechanical clone/link only when it's already set.
+if [ -n "${AGENTS_GIT_SRC_DIR:-}" ]; then
+  bash "$ROOT/scripts/sync-projects.sh" || warn "project sync had issues; review output above."
+else
+  warn "AGENTS_GIT_SRC_DIR is not set — projects can't be cloned/linked yet."
+  warn "Run the setup prompt with your agent harness (see README.md), e.g.:"
+  warn "    claude \"/setup-projects set up the projects source dir and link this workspace's projects\""
+  warn "    codex  \"/setup-projects set up the projects source dir and link this workspace's projects\""
+fi
 
 say "Ensuring harness pointers exist…"
 # .claude/skills → ../.agents/skills (symlinks don't always survive clone on Windows)
@@ -64,7 +86,7 @@ else
   warn "    codex  \"/setup-beads install beads and initialize this workspace\""
 fi
 
-say "Installing project dependencies in submodules…"
+say "Installing project dependencies…"
 "$ROOT/scripts/update-agent-deps.sh" --install || warn "dependency install had issues; review output above."
 
 say "Syncing VS Code workspace folders…"
@@ -77,8 +99,10 @@ Workspace ready.
 Next steps:
   • If Homebrew/asdf weren't detected above, run /setup-homebrew then /setup-asdf
     with your agent (see README).
+  • If AGENTS_GIT_SRC_DIR wasn't set above, run /setup-projects to provision it
+    and clone+link this workspace's projects.
   • Open the *.code-workspace file in VS Code (it will suggest extensions).
   • Point your agent at AGENTS.md (Claude Code picks it up via CLAUDE.md).
-  • Add projects with:  make add-submodule URL=<git-url> DIR=<folder>
-  • Keep fresh with:    make update-submodules  &&  make update-agent-deps
+  • Add projects with:  make add-project URL=<git-url>
+  • Keep fresh with:    make update-projects  &&  make update-agent-deps
 DONE

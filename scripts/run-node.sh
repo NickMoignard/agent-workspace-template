@@ -4,7 +4,7 @@
 # The mechanical scripts (e.g. sync-workspace.mjs) must run even before
 # /setup-asdf has installed the nodejs version pinned in .tool-versions —
 # otherwise asdf's shim aborts with "No version is set for command node" and
-# `make add-submodule` / `make sync-workspace` break on a fresh clone.
+# `make add-project` / `make sync-workspace` break on a fresh clone.
 #
 # Resolution order (first that runs wins):
 #   1. `node` on PATH (respects the asdf pin) — when the pinned version exists.
