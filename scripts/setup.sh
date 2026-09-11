@@ -8,6 +8,21 @@ ROOT="$(pwd)"
 say() { printf '\033[1;36m==>\033[0m %s\n' "$1"; }
 warn() { printf '\033[1;33m[!]\033[0m %s\n' "$1"; }
 
+# asdf is a hard requirement, but installing/configuring it is agent-layer work
+# (the /setup-asdf skill), not this mechanical script. Check and point the way;
+# don't try to install it here. Toolchain-dependent steps below degrade
+# gracefully when it's absent.
+ASDF_DATA_DIR="${ASDF_DATA_DIR:-$HOME/.asdf}"
+if command -v asdf >/dev/null 2>&1 && [ -d "$ASDF_DATA_DIR/shims" ]; then
+  say "asdf detected ($(asdf --version 2>/dev/null))."
+else
+  warn "asdf is not set up — it is REQUIRED for this workspace (node/pnpm/python/uv/go/ruby/rust)."
+  warn "Run the setup prompt with your agent harness (see README.md), e.g.:"
+  warn "    claude \"/setup-asdf set up asdf and this workspace's toolchains\""
+  warn "    codex  \"/setup-asdf set up asdf and this workspace's toolchains\""
+  warn "Continuing with harness-agnostic steps; toolchain-dependent steps may be skipped."
+fi
+
 say "Initializing git submodules (recursive)…"
 git submodule update --init --recursive
 
@@ -45,6 +60,7 @@ cat <<'DONE'
 Workspace ready.
 
 Next steps:
+  • If asdf wasn't detected above, run /setup-asdf with your agent (see README).
   • Open the *.code-workspace file in VS Code (it will suggest extensions).
   • Point your agent at AGENTS.md (Claude Code picks it up via CLAUDE.md).
   • Add projects with:  make add-submodule URL=<git-url> DIR=<folder>

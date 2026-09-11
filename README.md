@@ -17,17 +17,53 @@ Select this template when creating a new workspace, then run `make setup`.
   plus a manifest for syncing external skill repos.
 - **Issue tracker** — [beads](https://github.com/steveyegge/beads) in `.beads/`.
 - **A Makefile** for onboarding and keeping everything fresh.
+- **Toolchains via [asdf](https://asdf-vm.com) (v0.16+)** — node/pnpm/python/uv/go/ruby/rust
+  are all managed through asdf. Every workspace pins python + uv by default.
+
+## Requirements
+
+- **asdf v0.16+** — a hard requirement (all language toolchains run through it).
+  The `/setup-asdf` skill installs and configures it for you (see onboarding).
+- git, and one of the supported agent harnesses (`claude`, `codex`, …).
 
 ## Quick start
+
+This template is **agent-first**: you let an agent run the multi-step setup
+rather than running each command yourself (see
+[ADR 0001](./docs/adr/0001-agent-first-task-execution.md)). Pick your harness:
 
 ```bash
 git clone --recurse-submodules <this-workspace-url>
 cd <workspace>
-make setup                                   # onboarding
-make add-submodule URL=<git-url> DIR=<dir>   # add your first project
+
+# 1. Provision asdf + this workspace's toolchains (agent-driven). Pick one:
+claude "/setup-asdf set up asdf and this workspace's toolchains, then run make setup"
+codex  "/setup-asdf set up asdf and this workspace's toolchains, then run make setup"
+
+# 2. Add your first project (the agent can do this too, via the add-submodule skill):
+make add-submodule URL=<git-url> DIR=<dir>
 ```
 
-## Make targets
+Prefer to drive it yourself? The mechanical steps are always runnable directly:
+
+```bash
+make setup    # submodules, pointers, beads, VS Code sync (warns if asdf missing)
+```
+
+`make setup` never installs asdf itself — that's the agent layer's job — but it
+detects whether asdf is configured and points you at `/setup-asdf` if not.
+
+## Agent skills
+
+Multi-step, environment-adaptive procedures live as skills in `.agents/skills/`
+and are run by an agent (any harness):
+
+- **setup-asdf** — install/configure asdf v0.16+, the blessed plugins, shims,
+  and this workspace's toolchains.
+- **add-submodule** — add a project as a submodule and wire it into the workspace.
+- **update-workspace** — refresh submodules, skills, and dependencies.
+
+## Make targets (mechanical, harness-agnostic)
 
 ```
 make setup              One-time onboarding after cloning
@@ -44,8 +80,13 @@ make help               List everything
 
 1. **Agnostic first.** Real content lives in `AGENTS.md` / `.agents/`. Never in
    `CLAUDE.md` / `.claude/` — those only point back.
-2. **Submodules own their code.** Commit code inside the submodule, then record
+2. **Agent-first, mechanical underneath.** Multi-step setup is run by an agent
+   via skills; the Makefile stays deterministic and never calls a harness.
+   See [ADR 0001](./docs/adr/0001-agent-first-task-execution.md).
+3. **asdf for all toolchains.** node/pnpm/python/uv/go/ruby/rust run through
+   asdf v0.16+; per-workspace versions live in `.tool-versions`.
+4. **Submodules own their code.** Commit code inside the submodule, then record
    the pointer in the parent repo.
-3. **Nothing goes stale.** `make update` refreshes submodules, deps, and skills.
+5. **Nothing goes stale.** `make update` refreshes submodules, deps, and skills.
 
 See [`AGENTS.md`](./AGENTS.md) for the full working guide.

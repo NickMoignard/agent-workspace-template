@@ -22,6 +22,15 @@ across all of them at once. It bundles:
 It is simultaneously a **VS Code multi-root workspace** (`*.code-workspace`),
 so every submodule shows up as a folder in the editor.
 
+**Toolchains run through [asdf](https://asdf-vm.com) v0.16+** — a hard
+requirement. node/pnpm/python/uv/go/ruby/rust are all managed by asdf; each
+workspace pins versions in `.tool-versions` (python + uv by default).
+
+**Agent-first.** Multi-step, environment-adaptive tasks (installing asdf,
+provisioning toolchains, …) are run by *you, the agent*, via skills — not by a
+human running commands. The Makefile is the mechanical, deterministic layer and
+never invokes a harness. See `docs/adr/0001-agent-first-task-execution.md`.
+
 ## Layout
 
 ```
@@ -30,12 +39,14 @@ so every submodule shows up as a folder in the editor.
 ├── CLAUDE.md                 # pointer → @AGENTS.md
 ├── *.code-workspace          # VS Code multi-root workspace (one folder per submodule)
 ├── Makefile                  # setup / update-submodules / update-agent-skills / update-agent-deps
+├── .tool-versions            # asdf toolchain pins (python + uv by default)
 ├── .agents/
-│   ├── skills/               # canonical agent skills (add-submodule, update-workspace, …)
+│   ├── skills/               # canonical agent skills (setup-asdf, add-submodule, update-workspace, …)
 │   └── skills.manifest       # external skill repos to sync on `make update-agent-skills`
 ├── .claude/                  # Claude Code harness pointers (skills symlink, settings)
 ├── .vscode/                  # recommended extensions + shared editor settings
 ├── .beads/                   # issue tracker database + JSONL
+├── docs/adr/                 # architecture decision records (0001 = agent-first)
 ├── scripts/                  # helper scripts used by the Makefile
 └── <project-a>/ <project-b>/ # git submodules (the actual source code)
 ```
@@ -59,6 +70,8 @@ so every submodule shows up as a folder in the editor.
 
 Skills live in `.agents/skills/<name>/SKILL.md`. Available in this template:
 
+- **setup-asdf** — install/configure asdf v0.16+, the blessed plugins, shims,
+  and this workspace's toolchains. Run this first when onboarding a machine.
 - **add-submodule** — add a new project as a submodule and register it in the
   VS Code workspace + issue tracker.
 - **update-workspace** — refresh submodules, skills, and dependencies so

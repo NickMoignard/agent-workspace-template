@@ -1,0 +1,14 @@
+python 3.14.7
+uv 0.12.13
+
+# Baseline toolchains for every workspace (agents are strong with Python).
+#
+# Add workspace-specific toolchains below as needed — the blessed plugin set the
+# /setup-asdf skill knows how to provision is:
+#   nodejs pnpm golang ruby rust
+# e.g.
+#   nodejs 22.11.0
+#   golang 1.23.4
+#
+# `/setup-asdf` ensures every blessed plugin is installed, then runs
+# `asdf install` to install exactly the versions pinned in this file.
