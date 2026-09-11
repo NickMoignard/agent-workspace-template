@@ -15,7 +15,9 @@ Select this template when creating a new workspace, then run `make setup`.
   (`.vscode/`). The folder list stays in sync with `.gitmodules` automatically.
 - **Agent skills** (`.agents/skills/`) — `add-submodule` and `update-workspace`,
   plus a manifest for syncing external skill repos.
-- **Issue tracker** — [beads](https://github.com/steveyegge/beads) in `.beads/`.
+- **Issue tracker** — [beads](https://github.com/gastownhall/beads) (`bd`) in
+  `.beads/`, backed by a local Dolt database. The `/setup-beads` skill installs
+  and initializes it.
 - **A Makefile** for onboarding and keeping everything fresh.
 - **Toolchains via [asdf](https://asdf-vm.com) (v0.16+)** — node/pnpm/python/uv/go/ruby/rust
   are all managed through asdf. Every workspace pins python + uv + nodejs by default.
@@ -28,6 +30,9 @@ Select this template when creating a new workspace, then run `make setup`.
   foundational tooling (including asdf). The `/setup-homebrew` skill sets it up.
 - **asdf v0.16+** — a hard requirement (all language toolchains run through it).
   The `/setup-asdf` skill installs and configures it for you (via Homebrew).
+- **beads (`bd`)** — a hard requirement; the issue tracker the workspace records
+  work in. The `/setup-beads` skill installs it (via Homebrew) and initializes
+  the local Dolt database.
 - git, and one of the supported agent harnesses (`claude`, `codex`, …).
 
 ## Quick start
@@ -41,8 +46,8 @@ git clone --recurse-submodules <this-workspace-url>
 cd <workspace>
 
 # 1. Provision prerequisites + toolchains (agent-driven, in order). Pick a harness:
-claude "/setup-homebrew set up Homebrew, then /setup-asdf for this workspace's toolchains, then run make setup"
-codex  "/setup-homebrew set up Homebrew, then /setup-asdf for this workspace's toolchains, then run make setup"
+claude "/setup-homebrew set up Homebrew, then /setup-asdf for this workspace's toolchains, then /setup-beads, then run make setup"
+codex  "/setup-homebrew set up Homebrew, then /setup-asdf for this workspace's toolchains, then /setup-beads, then run make setup"
 
 # 2. Add your first project (the agent can do this too, via the add-submodule skill):
 make add-submodule URL=<git-url> DIR=<dir>
@@ -65,6 +70,8 @@ and are run by an agent (any harness):
 - **setup-homebrew** — install/configure Homebrew (run first; asdf installs via brew).
 - **setup-asdf** — install/configure asdf v0.16+, the blessed plugins, shims,
   and this workspace's toolchains.
+- **setup-beads** — install the `bd` issue tracker and initialize the local Dolt
+  database without clobbering the harness-agnostic agent files.
 - **add-submodule** — add a project as a submodule and wire it into the workspace.
 - **update-workspace** — refresh submodules, skills, and dependencies.
 

@@ -50,12 +50,18 @@ fi
 
 say "Setting up the beads issue tracker…"
 if command -v bd >/dev/null 2>&1; then
-  # bd rebuilds its local .db cache from the committed .jsonl on first use.
-  bd import 2>/dev/null || bd init 2>/dev/null || true
-  echo "  beads ready ($(bd --version 2>/dev/null || echo installed))"
+  # Initialize the local Dolt database WITHOUT letting bd write its own agent
+  # files: --skip-agents keeps AGENTS.md/CLAUDE.md/.claude untouched (the
+  # canonical beads instructions already live in AGENTS.md). --init-if-missing
+  # makes this idempotent. See docs/adr/0003 and the /setup-beads skill.
+  BD_NON_INTERACTIVE=1 bd init --skip-agents --skip-hooks --init-if-missing >/dev/null 2>&1 \
+    && echo "  beads ready ($(bd --version 2>/dev/null || echo installed))" \
+    || warn "beads init had issues; run '/setup-beads' with your agent to fix."
 else
-  warn "beads ('bd') is not installed. Install it, then run 'make setup' again."
-  warn "  see https://github.com/steveyegge/beads"
+  warn "beads ('bd') is not set up — it is REQUIRED for this workspace (issue tracking)."
+  warn "Run the setup prompt with your agent harness (see README.md), e.g.:"
+  warn "    claude \"/setup-beads install beads and initialize this workspace\""
+  warn "    codex  \"/setup-beads install beads and initialize this workspace\""
 fi
 
 say "Installing project dependencies in submodules…"

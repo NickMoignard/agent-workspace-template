@@ -1,8 +1,15 @@
-# --- Beads issue tracker ---
-# The SQLite DB is a local cache rebuilt from the JSONL; keep JSONL in git.
+# --- Beads issue tracker (Dolt-backed) ---
+# Issues live in a local Dolt database synced via `bd dolt push`, not committed
+# files. bd writes a detailed .beads/.gitignore on init; these are a safety net
+# for the db + per-machine runtime before that exists. config.yaml/metadata.json
+# stay trackable.
+.beads/embeddeddolt/
+.beads/dolt/
+.beads/proxieddb/
 .beads/*.db
 .beads/*.db-shm
 .beads/*.db-wal
+.beads-credential-key
 
 # --- Dependencies (submodules manage their own; ignore any at root) ---
 node_modules/
