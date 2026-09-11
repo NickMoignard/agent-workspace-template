@@ -45,7 +45,8 @@ never invokes a harness. See `docs/adr/0001-agent-first-task-execution.md`.
 .
 ├── AGENTS.md                 # ← you are here (canonical instructions)
 ├── CLAUDE.md                 # pointer → @AGENTS.md
-├── CONTEXT.md                # glossary: workspace / project / manifest terms
+├── CONTEXT-MAP.md            # multi-context index: one context per project (agent-maintained)
+├── CONTEXT.md                # glossary: the workspace's own vocabulary (workspace / project / manifest)
 ├── *.code-workspace          # VS Code multi-root workspace (one folder per project)
 ├── Makefile                  # setup / update-projects / update-agent-skills / update-agent-deps
 ├── projects.yaml             # manifest: clone URLs of the projects this workspace references
@@ -58,6 +59,7 @@ never invokes a harness. See `docs/adr/0001-agent-first-task-execution.md`.
 ├── .vscode/                  # recommended extensions + shared editor settings
 ├── .beads/                   # beads issue tracker (local Dolt db, git-ignored; README committed)
 ├── docs/adr/                 # architecture decision records (0001 = agent-first, 0004 = projects-as-symlinks)
+├── docs/agents/              # config for external engineering skills (issue tracker, triage labels, domain)
 └── scripts/                  # helper scripts used by the Makefile
 ```
 
@@ -83,6 +85,10 @@ them.
    issues rather than scattering TODOs. See "Issue tracking (beads)" below; run
    `bd prime` for the full, current workflow.
 5. **Don't let projects go stale.** Run `make update-projects` regularly.
+6. **Maintain the context map.** This is a multi-context workspace: `CONTEXT-MAP.md`
+   at the root indexes each project's context (and `CONTEXT.md` holds the
+   workspace's own vocabulary). When you add or remove a project, register or
+   remove its context entry and update the relationships so the map never lies.
 
 ## Skills
 
@@ -135,6 +141,25 @@ bd dolt push                                # sync issues to the remote
 ```
 
 Run `bd prime` for the full, up-to-date workflow context.
+
+## Agent skills
+
+Configuration read by external engineering skills (e.g. the
+[mattpocock/skills](https://skills.sh) set: `to-issues`, `triage`, `qa`,
+`to-prd`, `improve-codebase-architecture`, `diagnose`, `tdd`). The details live
+in `docs/agents/` so they can evolve without touching this file.
+
+### Issue tracker
+
+Work is tracked in **beads (`bd`)** — the workspace's own tracker. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles, applied as `bd` labels (default strings). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+**Multi-context**: `CONTEXT-MAP.md` at the root indexes one context per project. See `docs/agents/domain.md`.
 
 ## Common commands
 

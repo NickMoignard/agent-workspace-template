@@ -2,7 +2,8 @@
 
 The shared language for this template: what a workspace is, what it groups, and
 how it references the projects worked on inside it. This is a glossary, not a
-spec.
+spec. This is the workspace's own context; `CONTEXT-MAP.md` indexes it alongside
+one context per referenced project.
 
 ## Language
 
