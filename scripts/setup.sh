@@ -8,10 +8,19 @@ ROOT="$(pwd)"
 say() { printf '\033[1;36m==>\033[0m %s\n' "$1"; }
 warn() { printf '\033[1;33m[!]\033[0m %s\n' "$1"; }
 
-# asdf is a hard requirement, but installing/configuring it is agent-layer work
-# (the /setup-asdf skill), not this mechanical script. Check and point the way;
-# don't try to install it here. Toolchain-dependent steps below degrade
-# gracefully when it's absent.
+# Homebrew and asdf are hard requirements, but installing/configuring them is
+# agent-layer work (the /setup-homebrew and /setup-asdf skills), not this
+# mechanical script. Check and point the way; don't install here. Toolchain-
+# dependent steps below degrade gracefully when they're absent.
+if command -v brew >/dev/null 2>&1; then
+  say "Homebrew detected ($(brew --version 2>/dev/null | head -1))."
+else
+  warn "Homebrew is not set up — it is REQUIRED for this workspace (installs asdf & foundational tooling)."
+  warn "Run the setup prompt with your agent harness (see README.md), e.g.:"
+  warn "    claude \"/setup-homebrew set up Homebrew on this machine\""
+  warn "    codex  \"/setup-homebrew set up Homebrew on this machine\""
+fi
+
 ASDF_DATA_DIR="${ASDF_DATA_DIR:-$HOME/.asdf}"
 if command -v asdf >/dev/null 2>&1 && [ -d "$ASDF_DATA_DIR/shims" ]; then
   say "asdf detected ($(asdf --version 2>/dev/null))."
@@ -60,7 +69,8 @@ cat <<'DONE'
 Workspace ready.
 
 Next steps:
-  • If asdf wasn't detected above, run /setup-asdf with your agent (see README).
+  • If Homebrew/asdf weren't detected above, run /setup-homebrew then /setup-asdf
+    with your agent (see README).
   • Open the *.code-workspace file in VS Code (it will suggest extensions).
   • Point your agent at AGENTS.md (Claude Code picks it up via CLAUDE.md).
   • Add projects with:  make add-submodule URL=<git-url> DIR=<folder>

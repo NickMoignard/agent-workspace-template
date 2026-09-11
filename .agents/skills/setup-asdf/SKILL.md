@@ -34,6 +34,11 @@ version in its `.tool-versions`.
 
 ## Steps
 
+### 0. Prerequisite: Homebrew
+
+asdf is installed via Homebrew, which is a hard requirement on the same level as
+asdf. If `brew` is missing, run `/setup-homebrew` first, then continue here.
+
 ### 1. Ensure asdf v0.16+ is installed
 
 Require the Go-rewrite era (v0.16+); classic shell-based asdf is not supported.
@@ -42,15 +47,12 @@ Require the Go-rewrite era (v0.16+); classic shell-based asdf is not supported.
 asdf --version   # expect v0.16.0 or newer
 ```
 
-- **Missing** → install it. Prefer the platform package manager, then fall back:
-  - macOS: `brew install asdf`
-  - Linux with Homebrew: `brew install asdf`
-  - Go toolchain present: `go install github.com/asdf-vm/asdf/cmd/asdf@latest`
-  - Otherwise download the release binary for the OS/arch from
-    https://github.com/asdf-vm/asdf/releases and place it on `PATH`.
-- **Present but < v0.16** → upgrade via the same mechanism it was installed
-  with (`brew upgrade asdf`, re-`go install`, or replace the binary). Do **not**
-  try to make classic asdf work.
+- **Missing** → `brew install asdf`.
+- **Present but < v0.16** → `brew upgrade asdf`. Do **not** try to make classic
+  (git-cloned, shell-sourced) asdf work; if that's what's installed, remove it
+  and install via brew.
+
+(Homebrew always ships current asdf, so brew is the single install path.)
 
 Note the data dir: `ASDF_DATA_DIR` (default `~/.asdf`). Shims live in
 `$ASDF_DATA_DIR/shims`.

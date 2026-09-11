@@ -22,8 +22,10 @@ Select this template when creating a new workspace, then run `make setup`.
 
 ## Requirements
 
+- **Homebrew** — a hard requirement; the package manager used to install
+  foundational tooling (including asdf). The `/setup-homebrew` skill sets it up.
 - **asdf v0.16+** — a hard requirement (all language toolchains run through it).
-  The `/setup-asdf` skill installs and configures it for you (see onboarding).
+  The `/setup-asdf` skill installs and configures it for you (via Homebrew).
 - git, and one of the supported agent harnesses (`claude`, `codex`, …).
 
 ## Quick start
@@ -36,9 +38,9 @@ rather than running each command yourself (see
 git clone --recurse-submodules <this-workspace-url>
 cd <workspace>
 
-# 1. Provision asdf + this workspace's toolchains (agent-driven). Pick one:
-claude "/setup-asdf set up asdf and this workspace's toolchains, then run make setup"
-codex  "/setup-asdf set up asdf and this workspace's toolchains, then run make setup"
+# 1. Provision prerequisites + toolchains (agent-driven, in order). Pick a harness:
+claude "/setup-homebrew set up Homebrew, then /setup-asdf for this workspace's toolchains, then run make setup"
+codex  "/setup-homebrew set up Homebrew, then /setup-asdf for this workspace's toolchains, then run make setup"
 
 # 2. Add your first project (the agent can do this too, via the add-submodule skill):
 make add-submodule URL=<git-url> DIR=<dir>
@@ -58,6 +60,7 @@ detects whether asdf is configured and points you at `/setup-asdf` if not.
 Multi-step, environment-adaptive procedures live as skills in `.agents/skills/`
 and are run by an agent (any harness):
 
+- **setup-homebrew** — install/configure Homebrew (run first; asdf installs via brew).
 - **setup-asdf** — install/configure asdf v0.16+, the blessed plugins, shims,
   and this workspace's toolchains.
 - **add-submodule** — add a project as a submodule and wire it into the workspace.
@@ -83,8 +86,9 @@ make help               List everything
 2. **Agent-first, mechanical underneath.** Multi-step setup is run by an agent
    via skills; the Makefile stays deterministic and never calls a harness.
    See [ADR 0001](./docs/adr/0001-agent-first-task-execution.md).
-3. **asdf for all toolchains.** node/pnpm/python/uv/go/ruby/rust run through
-   asdf v0.16+; per-workspace versions live in `.tool-versions`.
+3. **Homebrew + asdf for all toolchains.** Homebrew is the foundational package
+   manager; node/pnpm/python/uv/go/ruby/rust run through asdf v0.16+ (installed
+   via brew); per-workspace versions live in `.tool-versions`.
 4. **Submodules own their code.** Commit code inside the submodule, then record
    the pointer in the parent repo.
 5. **Nothing goes stale.** `make update` refreshes submodules, deps, and skills.

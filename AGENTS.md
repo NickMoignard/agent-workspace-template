@@ -22,9 +22,11 @@ across all of them at once. It bundles:
 It is simultaneously a **VS Code multi-root workspace** (`*.code-workspace`),
 so every submodule shows up as a folder in the editor.
 
-**Toolchains run through [asdf](https://asdf-vm.com) v0.16+** — a hard
-requirement. node/pnpm/python/uv/go/ruby/rust are all managed by asdf; each
-workspace pins versions in `.tool-versions` (python + uv by default).
+**Homebrew and [asdf](https://asdf-vm.com) v0.16+ are hard requirements**, on the
+same level. Homebrew is the package manager that installs foundational tooling
+(including asdf itself), so set it up first. node/pnpm/python/uv/go/ruby/rust are
+all managed by asdf; each workspace pins versions in `.tool-versions` (python +
+uv by default).
 
 **Agent-first.** Multi-step, environment-adaptive tasks (installing asdf,
 provisioning toolchains, …) are run by *you, the agent*, via skills — not by a
@@ -70,8 +72,10 @@ never invokes a harness. See `docs/adr/0001-agent-first-task-execution.md`.
 
 Skills live in `.agents/skills/<name>/SKILL.md`. Available in this template:
 
+- **setup-homebrew** — install/configure Homebrew. Run this first when
+  onboarding a machine (asdf installs via brew).
 - **setup-asdf** — install/configure asdf v0.16+, the blessed plugins, shims,
-  and this workspace's toolchains. Run this first when onboarding a machine.
+  and this workspace's toolchains. Run after `setup-homebrew`.
 - **add-submodule** — add a new project as a submodule and register it in the
   VS Code workspace + issue tracker.
 - **update-workspace** — refresh submodules, skills, and dependencies so
