@@ -6,7 +6,10 @@ shared clones) so an AI agent and a human in VS Code can work across all of them
 at once. The workspace stays independent of the projects it works on: it pins no
 commits.
 
-Select this template when creating a new workspace, then run `make setup`.
+To create a new workspace, run the **`create-agent-workspace`** skill in an
+empty directory (see [Quick start](#quick-start)); it scaffolds this template's
+contents in and walks you through setup. GitHub's "Use this template" button
+still works too.
 
 ## What you get
 
@@ -47,19 +50,40 @@ Select this template when creating a new workspace, then run `make setup`.
 
 ## Quick start
 
-This template is **agent-first**: you let an agent run the multi-step setup
-rather than running each command yourself (see
+### Create a new workspace
+
+Workspaces are created by the standalone **`create-agent-workspace`** skill
+(installed via the [skills.sh](https://skills.sh) CLI). It scaffolds this
+template into an empty directory, then runs a guided setup conversation. This
+fits an "empty repo already created, then push" flow — see
+[ADR 0005](./docs/adr/0005-bootstrapping-workspaces.md).
+
+```bash
+# One-time: install the creator skill (globally, via npx skills)
+npx skills@latest add NickMoignard/create-agent-workspace
+
+# In your empty workspace directory, run the skill with your harness:
+cd my-new-workspace            # an empty dir (may already be an empty git repo)
+claude "/create-agent-workspace scaffold this workspace and walk me through setup"
+codex  "/create-agent-workspace scaffold this workspace and walk me through setup"
+```
+
+The skill copies the template in (no template git history), rewrites the README
+for your workspace, helps you populate `projects.yaml` and pick default skills,
+then runs the onboarding below.
+
+### Onboarding (run by the creator skill, or manually)
+
+This template is **agent-first**: an agent runs the multi-step setup rather than
+you running each command (see
 [ADR 0001](./docs/adr/0001-agent-first-task-execution.md)). Pick your harness:
 
 ```bash
-git clone <this-workspace-url>
-cd <workspace>
-
-# 1. Provision prerequisites + toolchains + projects (agent-driven, in order). Pick a harness:
+# Provision prerequisites + toolchains + projects (agent-driven, in order):
 claude "/setup-homebrew set up Homebrew, then /setup-asdf for this workspace's toolchains, then /setup-beads, then /setup-projects, then run make setup"
 codex  "/setup-homebrew set up Homebrew, then /setup-asdf for this workspace's toolchains, then /setup-beads, then /setup-projects, then run make setup"
 
-# 2. Add your first project (the agent can do this too, via the add-project skill):
+# Add a project any time (the agent can do this too, via the add-project skill):
 make add-project URL=<git-url>
 ```
 

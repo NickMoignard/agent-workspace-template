@@ -44,6 +44,17 @@ repo basename. It is a **YAML** file, `projects.yaml`, parsed with `yq`, whose
 one key `projects:` is a flat list of clone-URL strings.
 _Avoid_: lockfile (it does not pin versions), .gitmodules.
 
+**Bootstrapping** (the **create-agent-workspace** skill):
+Creating a new Workspace by scaffolding this template's contents into an empty
+directory. Done by the `create-agent-workspace` skill, installed standalone via
+the skills.sh CLI (`npx skills`), so an agent can run it in any empty dir. It
+runs a mechanical file-copy (the bootstrap script), then an interactive
+setup conversation (rewrite the README, configure `projects.yaml`, choose
+default skills). The skill lives in its own standalone repo
+(`create-agent-workspace`); this template repo is the scaffold source it fetches.
+The new Workspace does not inherit the template's git history.
+_Avoid_: fork, clone (the new Workspace is neither).
+
 ## Flagged ambiguities
 
 - **"add a project"** now means *record it in the Manifest, clone it into the
