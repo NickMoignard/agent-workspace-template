@@ -1,0 +1,33 @@
+{
+  // Multi-root VS Code workspace.
+  //
+  // The "folders" list is kept in sync with .gitmodules by
+  // `make sync-workspace` (run automatically by `make add-submodule` and
+  // `make update-submodules`). The first entry is the workspace root itself;
+  // every git submodule is appended below it. Do not hand-edit the submodule
+  // entries — regenerate them instead.
+  "folders": [
+    {
+      "name": "⚙︎ workspace-root",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.git": true
+    },
+    "git.detectSubmodules": true,
+    "git.openRepositoryInParentFolders": "always"
+  },
+  "extensions": {
+    "recommendations": [
+      "eamodio.gitlens",
+      "github.vscode-pull-request-github",
+      "editorconfig.editorconfig",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "streetsidesoftware.code-spell-checker",
+      "anthropic.claude-code"
+    ]
+  }
+}

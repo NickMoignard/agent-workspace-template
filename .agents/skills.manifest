@@ -1,0 +1,13 @@
+# External agent skills to sync into .agents/skills/ on `make update-agent-skills`.
+#
+# Format (whitespace-separated):  <name>  <git-url>  [ref]
+#   <name>    directory created under .agents/skills/<name>
+#   <git-url> a clonable git repo containing a SKILL.md (or a skill collection)
+#   [ref]     optional branch/tag/commit to pin to (defaults to the repo default)
+#
+# Locally-authored skills (add-submodule, update-workspace) are NOT listed here
+# and are never touched by the sync script.
+#
+# Examples (uncomment / replace with your own skill repos):
+# team-conventions   git@github.com:acme/agent-skill-conventions.git   main
+# security-review    https://github.com/acme/agent-skill-secreview.git v1.2.0

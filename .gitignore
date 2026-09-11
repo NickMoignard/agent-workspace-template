@@ -1,0 +1,20 @@
+# --- Beads issue tracker ---
+# The SQLite DB is a local cache rebuilt from the JSONL; keep JSONL in git.
+.beads/*.db
+.beads/*.db-shm
+.beads/*.db-wal
+
+# --- Dependencies (submodules manage their own; ignore any at root) ---
+node_modules/
+.venv/
+venv/
+__pycache__/
+
+# --- OS / editor noise ---
+.DS_Store
+Thumbs.db
+*.log
+
+# --- Local, per-user harness state (keep the pointers, ignore the state) ---
+.claude/settings.local.json
+.agents/skills.local.manifest

@@ -1,0 +1,14 @@
+{
+  // Recommended extensions for this agent workspace. VS Code prompts users to
+  // install these on first open. Keep in sync with the "extensions" block in
+  // the *.code-workspace file.
+  "recommendations": [
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github",
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "streetsidesoftware.code-spell-checker",
+    "anthropic.claude-code"
+  ]
+}
