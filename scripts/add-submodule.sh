@@ -37,12 +37,9 @@ git submodule update --init --recursive "$DIR"
 say "Syncing VS Code workspace folders"
 node scripts/sync-workspace.mjs
 
-# Install the new submodule's dependencies if it has any.
-if [ -f "$DIR/package.json" ] || [ -f "$DIR/pyproject.toml" ] || \
-   [ -f "$DIR/requirements.txt" ] || [ -f "$DIR/go.mod" ] || [ -f "$DIR/Cargo.toml" ]; then
-  say "Installing dependencies for $DIR"
-  ( cd "$DIR" && (npm ci 2>/dev/null || npm install 2>/dev/null || true) ) || true
-fi
+# Install the new submodule's dependencies using the right package manager.
+say "Installing dependencies for $DIR"
+bash scripts/update-agent-deps.sh --install "$DIR" || warn "dependency install had issues (continuing)."
 
 # Optionally file a beads issue to onboard the new project.
 if command -v bd >/dev/null 2>&1; then
