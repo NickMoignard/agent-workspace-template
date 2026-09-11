@@ -1,51 +1,37 @@
 #!/usr/bin/env bash
-# Sync external agent skills declared in .agents/skills.manifest.
+# Update external agent skills via the skills.sh CLI (`npx skills`).
 #
-# Manifest format (whitespace-separated, '#' comments and blank lines ignored):
+# External skills are installed as editable copies under .agents/skills/ (the
+# `universal` agent target) and tracked in skills-lock.json (the source of
+# truth, committed). This script refreshes installed skills to their latest
+# upstream versions.
 #
-#     <name>   <git-url>                              [ref]
-#     example  https://github.com/org/agent-skills    main
+# To ADD a skill (then commit the result):
+#   npx skills@latest add <owner/repo> -a universal          # pick interactively
+#   npx skills@latest add <owner/repo> -a universal --all    # take everything
+#   npx skills@latest add <owner/repo> -a universal -s <name>
 #
-# Each entry is cloned to .agents/skills/<name> and kept up to date with a
-# fast-forward pull. Locally-authored skills (not listed in the manifest) are
-# never touched.
+# See docs/adr/0002-external-skills-via-skills-cli.md.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-
-MANIFEST=".agents/skills.manifest"
-DEST_ROOT=".agents/skills"
 
 say()  { printf '\033[1;36m==>\033[0m %s\n' "$1"; }
 warn() { printf '\033[1;33m[!]\033[0m %s\n' "$1"; }
 
-if [ ! -f "$MANIFEST" ]; then
-  echo "No $MANIFEST found — nothing to sync."
+if ! command -v npx >/dev/null 2>&1; then
+  warn "npx not found — the baseline nodejs toolchain isn't set up."
+  warn "Run /setup-asdf with your agent (installs nodejs from .tool-versions), then retry."
   exit 0
 fi
 
-count=0
-# Read three columns; ref is optional.
-while read -r name url ref _rest || [ -n "$name" ]; do
-  case "$name" in ""|\#*) continue;; esac   # skip blanks / comments
-  [ -n "${url:-}" ] || { warn "skipping '$name' — no git URL"; continue; }
-  dest="$DEST_ROOT/$name"
-  count=$((count+1))
-
-  if [ -d "$dest/.git" ]; then
-    say "updating skill '$name'"
-    git -C "$dest" fetch --quiet origin
-    git -C "$dest" checkout --quiet "${ref:-HEAD}" 2>/dev/null || true
-    git -C "$dest" pull --ff-only --quiet || warn "could not fast-forward '$name'"
-  else
-    say "cloning skill '$name' from $url"
-    rm -rf "$dest"
-    git clone --quiet ${ref:+--branch "$ref"} "$url" "$dest" \
-      || warn "failed to clone '$name'"
-  fi
-done < "$MANIFEST"
-
-if [ "$count" -eq 0 ]; then
-  echo "Manifest has no active entries — add some external skill repos to $MANIFEST."
-else
-  say "Synced $count external skill(s)."
+if [ ! -f skills-lock.json ]; then
+  echo "No skills-lock.json yet — no external skills installed."
+  echo "Add some with:  npx skills@latest add <owner/repo> -a universal"
+  exit 0
 fi
+
+say "Updating external skills to latest (skills.sh)…"
+# -p: project scope (this workspace), -y: non-interactive
+npx -y skills@latest update -p -y
+
+say "External skills updated. Review & commit changes under .agents/skills/ and skills-lock.json."

@@ -18,7 +18,9 @@ Select this template when creating a new workspace, then run `make setup`.
 - **Issue tracker** — [beads](https://github.com/steveyegge/beads) in `.beads/`.
 - **A Makefile** for onboarding and keeping everything fresh.
 - **Toolchains via [asdf](https://asdf-vm.com) (v0.16+)** — node/pnpm/python/uv/go/ruby/rust
-  are all managed through asdf. Every workspace pins python + uv by default.
+  are all managed through asdf. Every workspace pins python + uv + nodejs by default.
+- **External skills via [skills.sh](https://skills.sh)** (`npx skills`) — add
+  published skill collections as editable copies, tracked in `skills-lock.json`.
 
 ## Requirements
 
@@ -66,13 +68,19 @@ and are run by an agent (any harness):
 - **add-submodule** — add a project as a submodule and wire it into the workspace.
 - **update-workspace** — refresh submodules, skills, and dependencies.
 
+Add **external** skills from the [skills.sh](https://skills.sh) ecosystem with
+`npx skills@latest add <owner/repo> -a universal` — they land as editable copies
+under `.agents/skills/` and are tracked in `skills-lock.json`. `make
+update-agent-skills` keeps them current. See
+[ADR 0002](./docs/adr/0002-external-skills-via-skills-cli.md).
+
 ## Make targets (mechanical, harness-agnostic)
 
 ```
 make setup              One-time onboarding after cloning
 make update-submodules  Pull every submodule to latest
 make update-agent-deps  Update dependencies in each submodule
-make update-agent-skills Sync external skills from .agents/skills.manifest
+make update-agent-skills Refresh external skills via `npx skills update`
 make update             All three of the above
 make add-submodule      Add a project submodule (URL=… DIR=… BRANCH=…)
 make sync-workspace     Regenerate the VS Code folder list from .gitmodules

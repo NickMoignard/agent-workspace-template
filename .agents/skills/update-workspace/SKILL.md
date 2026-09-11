@@ -21,7 +21,7 @@ Or run the pieces individually:
 | Goal | Command | What it does |
 | --- | --- | --- |
 | Submodules stale | `make update-submodules` | `git submodule update --remote` on all, then re-syncs the VS Code workspace folders. |
-| Skills stale | `make update-agent-skills` | Clones/fast-forwards every repo in `.agents/skills.manifest`. |
+| Skills stale | `make update-agent-skills` | Runs `npx skills update` to refresh external skills tracked in `skills-lock.json`. |
 | Dependencies stale | `make update-agent-deps` | Detects the package manager per submodule and updates deps. |
 
 ## Procedure
@@ -34,7 +34,9 @@ Or run the pieces individually:
    ```
 2. Run `make update-agent-deps` to bring dependencies current inside each
    submodule. Inspect and commit lockfile changes *inside each submodule*.
-3. Run `make update-agent-skills` to sync external skills from the manifest.
+3. Run `make update-agent-skills` to refresh external skills (via `npx skills
+   update`). Add new ones with `npx skills@latest add <owner/repo> -a universal`,
+   then commit `.agents/skills/` + `skills-lock.json`.
 4. Commit the parent-repo pointer bumps with a clear message, e.g.
    `chore: bump submodules & deps`.
 

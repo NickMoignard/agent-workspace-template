@@ -17,4 +17,3 @@ Thumbs.db
 
 # --- Local, per-user harness state (keep the pointers, ignore the state) ---
 .claude/settings.local.json
-.agents/skills.local.manifest

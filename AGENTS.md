@@ -26,7 +26,7 @@ so every submodule shows up as a folder in the editor.
 same level. Homebrew is the package manager that installs foundational tooling
 (including asdf itself), so set it up first. node/pnpm/python/uv/go/ruby/rust are
 all managed by asdf; each workspace pins versions in `.tool-versions` (python +
-uv by default).
+uv + nodejs by default — nodejs provides `npx` for skill management).
 
 **Agent-first.** Multi-step, environment-adaptive tasks (installing asdf,
 provisioning toolchains, …) are run by *you, the agent*, via skills — not by a
@@ -43,8 +43,8 @@ never invokes a harness. See `docs/adr/0001-agent-first-task-execution.md`.
 ├── Makefile                  # setup / update-submodules / update-agent-skills / update-agent-deps
 ├── .tool-versions            # asdf toolchain pins (python + uv by default)
 ├── .agents/
-│   ├── skills/               # canonical agent skills (setup-asdf, add-submodule, update-workspace, …)
-│   └── skills.manifest       # external skill repos to sync on `make update-agent-skills`
+│   └── skills/               # agent skills — built-in (setup-asdf, add-submodule, …) + external copies via `npx skills`
+├── skills-lock.json          # lockfile for external skills (created when you add the first one)
 ├── .claude/                  # Claude Code harness pointers (skills symlink, settings)
 ├── .vscode/                  # recommended extensions + shared editor settings
 ├── .beads/                   # issue tracker database + JSONL
@@ -83,13 +83,18 @@ Skills live in `.agents/skills/<name>/SKILL.md`. Available in this template:
 
 Invoke a skill by reading its `SKILL.md` and following the procedure.
 
+**External skills** from the [skills.sh](https://skills.sh) ecosystem are added
+with `npx skills@latest add <owner/repo> -a universal` (installs editable copies
+into `.agents/skills/`, tracked in `skills-lock.json`) and refreshed with `make
+update-agent-skills`. See `docs/adr/0002-external-skills-via-skills-cli.md`.
+
 ## Common commands
 
 | Command | Purpose |
 | --- | --- |
 | `make setup` | One-time onboarding after cloning (submodules, symlinks, deps, beads). |
 | `make update-submodules` | Pull every submodule to its latest tracked branch. |
-| `make update-agent-skills` | Sync external skills listed in `.agents/skills.manifest`. |
+| `make update-agent-skills` | Refresh external skills via `npx skills update` (tracked in `skills-lock.json`). |
 | `make update-agent-deps` | Update project dependencies (npm/pnpm/yarn/pip/…) in each submodule. |
 | `make add-submodule URL=… DIR=…` | Add a new project submodule and wire it up. |
 | `make sync-workspace` | Regenerate the `.code-workspace` folder list from `.gitmodules`. |

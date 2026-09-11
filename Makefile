@@ -27,7 +27,7 @@ update-submodules: ## Pull every submodule to the latest remote commit on its tr
 	@echo "==> Submodules updated. Review & commit the new pointers with: git add -p"
 
 .PHONY: update-agent-skills
-update-agent-skills: ## Sync external agent skills from .agents/skills.manifest
+update-agent-skills: ## Refresh external agent skills via `npx skills update` (tracked in skills-lock.json)
 	@bash scripts/update-agent-skills.sh
 
 .PHONY: update-agent-deps

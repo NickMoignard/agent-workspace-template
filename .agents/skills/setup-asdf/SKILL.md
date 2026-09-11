@@ -28,9 +28,10 @@ cheap — it just registers where to fetch versions from):
 | Ruby | `ruby` |
 | Rust | `rust` |
 
-Only **python** and **uv** are given a *version* (installed) in the template.
-The others are added as plugins but only installed in a workspace that pins a
-version in its `.tool-versions`.
+**python**, **uv**, and **nodejs** are given a *version* (installed) in every
+workspace — nodejs because `npx` drives external skill management (see
+`docs/adr/0002`). The rest are added as plugins but only installed in a
+workspace that pins a version in its `.tool-versions`.
 
 ## Steps
 
@@ -102,12 +103,14 @@ On v0.16+ there is **no** `asdf.sh` to source. Put `$ASDF_DATA_DIR/shims` on
 
 ### 4. Pin python + uv if missing, then install
 
-The workspace `.tool-versions` should already pin `python` and `uv`. If either
-is absent, pin the latest stable (skip free-threaded `…t` python builds):
+The workspace `.tool-versions` should already pin `python`, `uv`, and `nodejs`.
+If any is absent, pin the latest stable (skip free-threaded `…t` python builds;
+prefer the current nodejs LTS):
 
 ```bash
 grep -q '^python ' .tool-versions || asdf set python "$(asdf latest python)"
 grep -q '^uv '     .tool-versions || asdf set uv "$(asdf latest uv)"
+grep -q '^nodejs ' .tool-versions || asdf set nodejs "$(asdf latest nodejs)"
 ```
 
 Only pin when missing — never bump an existing pin unless the user asks.
